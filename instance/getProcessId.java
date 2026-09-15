@@ -12,25 +12,54 @@ public class getProcessId {
 
         User32.INSTANCE.EnumWindows((hwnd, data) -> {
             char[] buffer = new char[512];
-            User32.INSTANCE.GetWindowText(hwnd, buffer, 512);
 
-            String title = Native.toString(buffer);
+            User32.INSTANCE.GetWindowText(
+                hwnd,
+                buffer,
+                512
+            );
 
-            if (title.contains("Minecraft")) {
-                IntByReference pid =
-                    new IntByReference();
+            String title =
+                Native.toString(buffer);
 
-                User32.INSTANCE.GetWindowThreadProcessId(
-                    hwnd,
-                    pid
-                );
+            if (!title.contains("Minecraft")) {
+                return true;
+            }
 
-                processID[0] = pid.getValue();
+            IntByReference pid =
+                new IntByReference();
 
-                return false;
+            User32.INSTANCE.GetWindowThreadProcessId(
+                hwnd,
+                pid
+            );
+
+            int currentPID =
+                pid.getValue();
+
+            try {
+                String commandLine =
+                    getCommandLine.getCommandLine(
+                        currentPID
+                    );
+
+                if (
+                    commandLine.contains(
+                        "com/mojang/minecraft/"
+                    )
+                ) {
+                    processID[0] =
+                        currentPID;
+
+                    return false;
+                }
+
+            } catch (Exception e) {
+                return true;
             }
 
             return true;
+
         }, Pointer.NULL);
 
         return processID[0];

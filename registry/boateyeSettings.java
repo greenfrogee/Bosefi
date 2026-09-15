@@ -4,21 +4,36 @@ import java.util.prefs.Preferences;
 
 public class boateyeSettings {
 
-    private static final Preferences preferences =
-        Preferences.userRoot().node("ninjabrainbot");
+    private static final Preferences userRoot =
+        Preferences.userRoot();
+
+    private static final String NODE_NAME =
+        "ninjabrainbot";
+
+    private static Preferences preferences() {
+        return userRoot.node(NODE_NAME);
+    }
+
+    public static Boolean exists() {
+        try {
+            return userRoot.nodeExists(NODE_NAME);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     public static String setValue(
         String name,
         String value
     ) {
         String current =
-            preferences.get(name, null);
+            preferences().get(name, null);
 
         if (value.equals(current)) {
             return "";
         }
 
-        preferences.put(name, value);
+        preferences().put(name, value);
 
         return "Ninjabrainbot "
             + name

@@ -19,14 +19,46 @@ import javax.swing.JOptionPane;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.swing.JLabel;
+
+import java.awt.Desktop;
+import java.net.URI;
+
 public class Main {
 
     public static void main(String[] args) {
 
-        int pid = getProcessId.getMinecraftPID();
+        String errorMessage = "";
 
+        int pid = getProcessId.getMinecraftPID();
+        System.out.println(pid);
         if (pid == -1) {
+            errorMessage += "ERROR: Minecraft is not currently running! Please launch it, then run Bosefi again.\n";
             System.out.println("Minecraft process not found.");
+        }
+        
+        Boolean boateyeSettingsExists =
+            boateyeSettings.exists();
+
+        System.out.println("DO BOATEYE SETTINGS EXIST?" + boateyeSettingsExists);
+        if (boateyeSettingsExists == null || !boateyeSettingsExists) {
+                errorMessage += "ERROR: You have not installed Ninjabrainbot! Please run it once, then run Bosefi again.\n";
+            }
+
+        boolean toolscreenConfigExists = getToolscreenSensitivity.exists();
+
+        if (!toolscreenConfigExists) {
+            errorMessage += "ERROR: You have not installed Toolscreen! Please install it, then run Bosefi again.\n";
+            }
+
+        if (!errorMessage.isEmpty()) {
+            System.out.println("error message is not nothing; telling user errors");
+            JOptionPane.showMessageDialog(
+                null,
+                errorMessage,
+                "Bosefi",
+                JOptionPane.ERROR_MESSAGE
+            );
             return;
         }
 
@@ -142,11 +174,41 @@ public class Main {
             changes = "No changes made.";
         }
 
-        JOptionPane.showMessageDialog(
-            null,
-            "Changes Made:\n" + changes,
-            "Bosefi",
-            JOptionPane.INFORMATION_MESSAGE
+        JLabel message =
+            new JLabel(
+            "<html>"
+            + "Changes Made:<br>"
+            + changes.replace("\n", "<br>")
+            + "<br><br>"
+            + "Make sure you're aware of eye wiggle when measuring! "
+            + "See here for more info: "
+            + "<a href='https://frontcage.com/t/what-to-do-about-eye-wiggle/14'>"
+            + "https://frontcage.com/t/what-to-do-about-eye-wiggle/14"
+            + "</a>"
+            + "</html>"
+            );
+
+        message.addMouseListener(
+            new java.awt.event.MouseAdapter() {
+            @Override
+                public void mouseClicked(java.awt.event.MouseEvent e)
+                {
+                    try {
+                        Desktop.getDesktop().browse(
+                            new URI("https://frontcage.com/t/what-to-do-about-eye-wiggle/14")
+                        );
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+);
+
+JOptionPane.showMessageDialog(
+    null,
+    message,
+    "Bosefi",
+    JOptionPane.INFORMATION_MESSAGE
         );
     }
 }

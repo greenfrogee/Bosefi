@@ -1,6 +1,22 @@
 package toolscreen;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class getToolscreenSensitivity {
+
+    public static boolean exists() {
+        Path file =
+            Paths.get(
+                System.getProperty("user.home"),
+                ".config",
+                "toolscreen",
+                "config.toml"
+            );
+
+        return Files.isRegularFile(file);
+    }
 
     public static Double get(
         Double optionsTxtMouseSensitivity,
