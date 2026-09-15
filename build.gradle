@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.9'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.java.dev.jna:jna:5.19.1'
+    implementation 'net.java.dev.jna:jna-platform:5.19.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['.']
+            exclude 'build/**'
+            exclude 'gradle/**'
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+}
+
+shadowJar {
+    archiveBaseName = 'Bosefi'
+    archiveVersion = ''
+    archiveClassifier = ''
+
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+}

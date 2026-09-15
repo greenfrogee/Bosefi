@@ -1,0 +1,6 @@
+build/
+.gradle/
+*.class
+gradle.properties
+.gradle
+META-INF/
