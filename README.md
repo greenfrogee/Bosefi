@@ -13,8 +13,9 @@ Bosefi only works on Windows. Most features will most likely break for MacOS or 
 1. Download the latest jar [here](https://github.com/greenfrogee/bosefi/releases/latest).
 2. Launch Minecraft.
 3. Make sure your sensitivity in `Options` > `Controls` > `Mouse Settings` is set to what you want it to be.
-4. Run the jar file by double clicking it.
-5. Close Minecraft. Do not touch any other settings in Minecraft or they may not properly apply.
-6. Relaunch Minecraft.
-7. Relaunch Ninjabrainbot and press Reset.
-8. Boateye should now be fully configured!
+4. Make sure your Global Sensitivity in `Toolscreen` > `Basic` is set to 1.
+5. Run the jar file by double clicking it.
+6. Close Minecraft. Do not touch any other settings in Minecraft or they may not properly apply.
+7. Relaunch Minecraft.
+8. Relaunch Ninjabrainbot and press Reset.
+9. Boateye should now be fully configured!
