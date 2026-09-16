@@ -19,3 +19,10 @@ Bosefi only works on Windows. Most features will most likely break for MacOS or 
 7. Relaunch Minecraft.
 8. Relaunch Ninjabrainbot and press Reset.
 9. Boateye should now be fully configured!
+
+## Features
+Automatically configures the following:
+- All Ninjabrainbot settings
+- Options.txt sensitivity and standardsettings.json sensitivity (godsens)
+- Toolscreen global sensitivity (godsens)
+- Toolscreen eyezoom macro heights
