@@ -10,21 +10,12 @@ repositories {
 dependencies {
     implementation 'net.java.dev.jna:jna:5.19.1'
     implementation 'net.java.dev.jna:jna-platform:5.19.1'
+    implementation 'org.tomlj:tomlj:1.1.1'
 }
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs = ['.']
-            exclude 'build/**'
-            exclude 'gradle/**'
-        }
     }
 }
 
