@@ -1,5 +1,8 @@
 package toolscreen;
 
+import org.tomlj.Toml;
+import org.tomlj.TomlParseResult;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,12 +35,48 @@ public class getToolscreenSensitivity {
             return null;
         }
 
-        double numerator =
-            Math.pow((0.6 * sens) + 0.2, 3) * 1.2;
+        String activeProfile =
+            getActiveProfile.get();
 
-        double denominator =
-            Math.pow((0.6 * 0.02291165) + 0.2, 3) * 1.2;
+        if (activeProfile == null) {
+            return null;
+        }
 
-        return Math.round((numerator / denominator) * 100.0) / 100.0;
+        Path profile =
+            Paths.get(
+                System.getProperty("user.home"),
+                ".config",
+                "toolscreen",
+                "profiles",
+                activeProfile + ".toml"
+            );
+
+        try {
+            TomlParseResult result =
+                Toml.parse(profile);
+
+            Double globalSensitivity =
+                result.getDouble("mouseSensitivity");
+
+            if (globalSensitivity == null) {
+                return null;
+            }
+
+            double numerator =
+                Math.pow((0.6 * sens) + 0.2, 3) * 1.2;
+
+            double denominator =
+                Math.pow((0.6 * 0.02291165) + 0.2, 3) * 1.2;
+
+            double toolscreenSensitivity =
+                Math.round(
+                    (numerator / denominator) * 100.0
+                ) / 100.0;
+
+            return toolscreenSensitivity * globalSensitivity;
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

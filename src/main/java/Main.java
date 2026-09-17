@@ -11,171 +11,225 @@ import options.fixOptionsTxtSensitivity;
 
 import toolscreen.getToolscreenSensitivity;
 import toolscreen.fixToolscreenSensitivity;
+import toolscreen.getActiveProfile;
 
 import registry.boateyeSettings;
 
 import javax.swing.JOptionPane;
+import javax.swing.JLabel;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import javax.swing.JLabel;
 
 import java.awt.Desktop;
 import java.net.URI;
 
 public class Main {
 
-    public static void main(String[] args) {
+public static void main(String[] args) {
 
-        String errorMessage = "";
+    String errorMessage = "";
 
-        int pid = getProcessId.getMinecraftPID();
-        System.out.println(pid);
-        if (pid == -1) {
-            errorMessage += "ERROR: Minecraft is not currently running! Please launch it, then run Bosefi again.\n";
-            System.out.println("Minecraft process not found.");
-        }
-        
-        Boolean boateyeSettingsExists =
-            boateyeSettings.exists();
+    int pid = getProcessId.getMinecraftPID();
+    System.out.println(pid);
 
-        System.out.println("DO BOATEYE SETTINGS EXIST?" + boateyeSettingsExists);
-        if (boateyeSettingsExists == null || !boateyeSettingsExists) {
-                errorMessage += "ERROR: You have not installed Ninjabrainbot! Please run it once, then run Bosefi again.\n";
-            }
+    if (pid == -1) {
+        errorMessage +=
+            "ERROR: Minecraft is not currently running! Please launch it, then run Bosefi again.\n";
 
-        boolean toolscreenConfigExists = getToolscreenSensitivity.exists();
+        System.out.println("Minecraft process not found.");
+    }
 
-        if (!toolscreenConfigExists) {
-            errorMessage += "ERROR: You have not installed Toolscreen! Please install it, then run Bosefi again.\n";
-            }
+    Boolean boateyeSettingsExists =
+        boateyeSettings.exists();
 
-        if (!errorMessage.isEmpty()) {
-            System.out.println("error message is not nothing; telling user errors");
-            JOptionPane.showMessageDialog(
-                null,
-                errorMessage,
-                "Bosefi",
-                JOptionPane.ERROR_MESSAGE
-            );
-            return;
-        }
+    System.out.println(
+        "DO BOATEYE SETTINGS EXIST?"
+        + boateyeSettingsExists
+    );
 
-        String minecraftVersion =
-            getMinecraftVersion.get(pid);
+    if (
+        boateyeSettingsExists == null
+        || !boateyeSettingsExists
+    ) {
+        errorMessage +=
+            "ERROR: You have not installed Ninjabrainbot! Please run it once, then run Bosefi again.\n";
+    }
 
-        Path instancePath =
-            getInstancePath.getInstancePath(pid);
+    boolean toolscreenConfigExists =
+        getToolscreenSensitivity.exists();
 
-        boolean optionsTxt =
-            getOptionsTxt.exists(instancePath);
+    if (!toolscreenConfigExists) {
+        errorMessage +=
+            "ERROR: You have not installed Toolscreen! Please install it, then run Bosefi again.\n";
+    }
 
-        boolean standardSettings =
-            getStandardSettings.exists(instancePath);
+    if (!errorMessage.isEmpty()) {
+        System.out.println(
+            "error message is not nothing; telling user errors"
+        );
 
-        String changes = "";
+        JOptionPane.showMessageDialog(
+            null,
+            errorMessage,
+            "Bosefi",
+            JOptionPane.ERROR_MESSAGE
+        );
 
-        System.out.println("PID:");
-        System.out.println(pid);
+        return;
+    }
 
-        System.out.println();
-        System.out.println("MINECRAFT VERSION:");
-        System.out.println(minecraftVersion);
+    String minecraftVersion =
+        getMinecraftVersion.get(pid);
 
-        System.out.println();
-        System.out.println("INSTANCE PATH:");
-        System.out.println(instancePath);
+    Path instancePath =
+        getInstancePath.getInstancePath(pid);
 
-        System.out.println();
-        System.out.println("OPTIONS.TXT:");
-        System.out.println(optionsTxt);
+    boolean optionsTxt =
+        getOptionsTxt.exists(instancePath);
 
-        System.out.println();
-        System.out.println("STANDARDSETTINGS.JSON:");
-        System.out.println(standardSettings);
+    boolean standardSettings =
+        getStandardSettings.exists(instancePath);
 
-        Double standardSettingsMouseSensitivity = null;
-        Double optionsTxtMouseSensitivity = null;
+    System.out.println("PID:");
+    System.out.println(pid);
 
-        if (standardSettings) {
-            standardSettingsMouseSensitivity =
-                getStandardSettingsSensitivity.get(instancePath);
+    System.out.println();
+    System.out.println("MINECRAFT VERSION:");
+    System.out.println(minecraftVersion);
 
-            System.out.println();
-            System.out.println("STANDARD SETTINGS MOUSE SENSITIVITY:");
-            System.out.println(standardSettingsMouseSensitivity);
+    System.out.println();
+    System.out.println("INSTANCE PATH:");
+    System.out.println(instancePath);
 
-            if (standardSettingsMouseSensitivity != null) {
-                changes +=
-                    fixStandardSettingsSensitivity.fix(instancePath);
-            }
-        }
+    System.out.println();
+    System.out.println("OPTIONS.TXT:");
+    System.out.println(optionsTxt);
 
-        if (optionsTxt) {
-            optionsTxtMouseSensitivity =
-                getOptionsTxtSensitivity.get(instancePath);
+    System.out.println();
+    System.out.println("STANDARDSETTINGS.JSON:");
+    System.out.println(standardSettings);
 
-            System.out.println();
-            System.out.println("OPTIONS.TXT MOUSE SENSITIVITY:");
-            System.out.println(optionsTxtMouseSensitivity);
+    Double standardSettingsMouseSensitivity = null;
+    Double optionsTxtMouseSensitivity = null;
 
-            if (optionsTxtMouseSensitivity != null) {
-                changes +=
-                    fixOptionsTxtSensitivity.fix(instancePath);
-            }
-        }
-
-        Double toolscreenSensitivity =
-            getToolscreenSensitivity.get(
-                optionsTxtMouseSensitivity,
-                standardSettingsMouseSensitivity
+    if (standardSettings) {
+        standardSettingsMouseSensitivity =
+            getStandardSettingsSensitivity.get(
+                instancePath
             );
 
         System.out.println();
-        System.out.println("TOOLSCREEN SENSITIVITY:");
-        System.out.println(toolscreenSensitivity);
+        System.out.println(
+            "STANDARD SETTINGS MOUSE SENSITIVITY:"
+        );
+        System.out.println(
+            standardSettingsMouseSensitivity
+        );
+    }
 
-        Path toolscreenConfig =
-            Paths.get(
-                System.getProperty("user.home"),
-                ".config",
-                "toolscreen",
-                "config.toml"
+    if (optionsTxt) {
+        optionsTxtMouseSensitivity =
+            getOptionsTxtSensitivity.get(
+                instancePath
             );
 
-        Path toolscreenProfile =
-            Paths.get(
-                System.getProperty("user.home"),
-                ".config",
-                "toolscreen",
-                "profiles",
-                "Default.toml"
-            );
+        System.out.println();
+        System.out.println(
+            "OPTIONS.TXT MOUSE SENSITIVITY:"
+        );
+        System.out.println(
+            optionsTxtMouseSensitivity
+        );
+    }
 
+    Double toolscreenSensitivity =
+        getToolscreenSensitivity.get(
+            optionsTxtMouseSensitivity,
+            standardSettingsMouseSensitivity
+        );
+
+    System.out.println();
+    System.out.println("TOOLSCREEN SENSITIVITY:");
+    System.out.println(toolscreenSensitivity);
+
+    String activeProfile =
+        getActiveProfile.get();
+
+    if (activeProfile == null) {
+        JOptionPane.showMessageDialog(
+            null,
+            "ERROR: Could not determine the active Toolscreen profile.",
+            "Bosefi",
+            JOptionPane.ERROR_MESSAGE
+        );
+
+        return;
+    }
+
+    Path toolscreenProfile =
+        Paths.get(
+            System.getProperty("user.home"),
+            ".config",
+            "toolscreen",
+            "profiles",
+            activeProfile + ".toml"
+        );
+
+    System.out.println();
+    System.out.println("ACTIVE TOOLSCREEN PROFILE:");
+    System.out.println(activeProfile);
+
+    int confirmation =
+        JOptionPane.showConfirmDialog(
+            null,
+            "Are you sure you want to change to boateye settings?",
+            "Bosefi",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+    if (confirmation != JOptionPane.OK_OPTION) {
+        return;
+    }
+
+    String changes = "";
+
+    if (standardSettingsMouseSensitivity != null) {
         changes +=
-            fixToolscreenSensitivity.fix(
-                toolscreenConfig,
-                toolscreenSensitivity,
-                "Toolscreen config sensitivity"
+            fixStandardSettingsSensitivity.fix(
+                instancePath
             );
+    }
 
+    if (optionsTxtMouseSensitivity != null) {
+        changes +=
+            fixOptionsTxtSensitivity.fix(
+                instancePath
+            );
+    }
+
+    if (toolscreenSensitivity != null) {
         changes +=
             fixToolscreenSensitivity.fix(
                 toolscreenProfile,
                 toolscreenSensitivity,
-                "Toolscreen default profile sensitivity"
+                "Toolscreen profile " + activeProfile
             );
+    }
 
-        changes +=
-            boateyeSettings.updateSettings(minecraftVersion);
+    changes +=
+        boateyeSettings.updateSettings(
+            minecraftVersion
+        );
 
-        if (changes.isEmpty()) {
-            changes = "No changes made.";
-        }
+    if (changes.isEmpty()) {
+        changes =
+            "No changes made.";
+    }
 
-        JLabel message =
-            new JLabel(
+    JLabel message =
+        new JLabel(
             "<html>"
             + "Changes Made:<br>"
             + changes.replace("\n", "<br>")
@@ -186,29 +240,46 @@ public class Main {
             + "https://frontcage.com/t/what-to-do-about-eye-wiggle/14"
             + "</a>"
             + "</html>"
-            );
+        );
 
-        message.addMouseListener(
-            new java.awt.event.MouseAdapter() {
+    message.addMouseListener(
+        new java.awt.event.MouseAdapter() {
             @Override
-                public void mouseClicked(java.awt.event.MouseEvent e)
-                {
-                    try {
-                        Desktop.getDesktop().browse(
-                            new URI("https://frontcage.com/t/what-to-do-about-eye-wiggle/14")
-                        );
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            public void mouseClicked(
+                java.awt.event.MouseEvent e
+            ) {
+                try {
+                    Desktop.getDesktop().browse(
+                        new URI(
+                            "https://frontcage.com/t/what-to-do-about-eye-wiggle/14"
+                        )
+                    );
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
-    }
-);
+    );
 
-JOptionPane.showMessageDialog(
-    null,
-    message,
-    "Bosefi",
-    JOptionPane.INFORMATION_MESSAGE
+    Thread exitThread =
+        new Thread(() -> {
+            try {
+                Thread.sleep(60000);
+                System.exit(0);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    );
+
+    exitThread.setDaemon(true);
+    exitThread.start();
+
+    JOptionPane.showMessageDialog(
+        null,
+        message,
+        "Bosefi",
+        JOptionPane.INFORMATION_MESSAGE
         );
     }
 }
