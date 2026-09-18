@@ -228,6 +228,25 @@ public static void main(String[] args) {
             "No changes made.";
     }
 
+    if (!changes.isEmpty()) {
+        changes = changes
+            .replace("null", "Disabled")
+            .replace("true", "Enabled")
+
+            .replace("mc_version", "Minecraft version")
+            .replace("crosshair_correction", "Crosshair correction")
+            .replace("use_adv_statistics", "Use advanced stronghold statistics")
+            .replace("enable_http_server", "Enable API")
+            .replace("angle_adjustment_display_type", "Adjustment display type")
+            .replace("angle_adjustment_type", "Pixel adjustment type")
+            .replace("resolution_height", "Resolution height")
+            .replace("use_precise_angle", "Enable boat measurements")
+            .replace("Ninjabrainbot sensitivity", "Ninjabrainbot Sensitivity 1.13+")
+            .replace("default_boat_type", "Default boat mode")
+            .replace("boat_error", "Allowable boat angle error")
+            .replace("sigma_boat", "Standard deviation for boat throws");
+    }
+
     JLabel message =
         new JLabel(
             "<html>"

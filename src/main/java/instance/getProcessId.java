@@ -42,12 +42,8 @@ public class getProcessId {
                     getCommandLine.getCommandLine(
                         currentPID
                     );
-
-                if (
-                    commandLine.contains(
-                        "com/mojang/minecraft/"
-                    )
-                ) {
+                    
+                if (commandLine.contains("--gameDir") || commandLine.contains("-Djava.library.path=") || commandLine.contains("com/mojang")) {
                     processID[0] =
                         currentPID;
 
