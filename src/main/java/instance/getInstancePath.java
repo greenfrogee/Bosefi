@@ -5,8 +5,10 @@ import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
+import com.sun.jna.platform.win32.BaseTSD;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
+import com.sun.jna.platform.win32.WinNT.MEMORY_BASIC_INFORMATION;
 import com.sun.jna.ptr.IntByReference;
 
 import java.nio.charset.StandardCharsets;
@@ -55,7 +57,8 @@ public class getInstancePath {
 
     private static Pointer readPointer(
         HANDLE process,
-        Pointer address
+        Pointer address,
+        String label
     ) {
         Memory buffer = new Memory(Native.POINTER_SIZE);
         IntByReference bytesRead = new IntByReference();
@@ -70,15 +73,16 @@ public class getInstancePath {
 
         if (!ok || bytesRead.getValue() != buffer.size()) {
             throw new IllegalStateException(
-                "ReadProcessMemory failed: "
+                label + " ReadProcessMemory failed: "
                 + Kernel32.INSTANCE.GetLastError()
+                + " | address=" + address
+                + " | bytesRead=" + bytesRead.getValue()
             );
         }
 
-        long value =
-            Native.POINTER_SIZE == 8
-                ? buffer.getLong(0)
-                : buffer.getInt(0) & 0xFFFFFFFFL;
+        long value = Native.POINTER_SIZE == 8
+            ? buffer.getLong(0)
+            : buffer.getInt(0) & 0xFFFFFFFFL;
 
         return new Pointer(value);
     }
@@ -92,14 +96,13 @@ public class getInstancePath {
         IntByReference retLen =
             new IntByReference();
 
-        int status =
-            Ntdll.INSTANCE.NtQueryInformationProcess(
-                process,
-                0,
-                pbi,
-                pbi.size(),
-                retLen
-            );
+        int status = Ntdll.INSTANCE.NtQueryInformationProcess(
+            process,
+            0,
+            pbi,
+            pbi.size(),
+            retLen
+        );
 
         if (status != 0) {
             throw new IllegalStateException(
@@ -107,85 +110,94 @@ public class getInstancePath {
             );
         }
 
-        Pointer processParametersAddress =
+        Pointer processParameters =
             readPointer(
                 process,
                 pbi.PebBaseAddress.share(
-                    Native.POINTER_SIZE == 8
-                        ? 0x20
-                        : 0x10
-                )
+                    Native.POINTER_SIZE == 8 ? 0x20 : 0x10
+                ),
+                "getEnvironment ProcessParameters"
             );
 
         Pointer environmentAddress =
             readPointer(
                 process,
-                processParametersAddress.share(
-                    Native.POINTER_SIZE == 8
-                        ? 0x80
-                        : 0x48
-                )
+                processParameters.share(
+                    Native.POINTER_SIZE == 8 ? 0x80 : 0x48
+                ),
+                "getEnvironment Environment"
             );
 
         if (environmentAddress == null) {
             return new HashMap<>();
         }
 
-        Memory buffer =
-            new Memory(64 * 1024);
+        MEMORY_BASIC_INFORMATION memoryInfo =
+            new MEMORY_BASIC_INFORMATION();
 
-        IntByReference bytesRead =
-            new IntByReference();
-
-        boolean ok =
-            Kernel32.INSTANCE.ReadProcessMemory(
+        BaseTSD.SIZE_T result =
+            Kernel32.INSTANCE.VirtualQueryEx(
                 process,
                 environmentAddress,
-                buffer,
-                (int) buffer.size(),
-                bytesRead
+                memoryInfo,
+                new BaseTSD.SIZE_T(memoryInfo.size())
             );
+
+        if (result.longValue() == 0) {
+            throw new IllegalStateException(
+                "VirtualQueryEx failed: "
+                + Kernel32.INSTANCE.GetLastError()
+            );
+        }
+
+        long regionEnd =
+            Pointer.nativeValue(memoryInfo.baseAddress)
+            + memoryInfo.regionSize.longValue();
+
+        long readableBytes =
+            regionEnd
+            - Pointer.nativeValue(environmentAddress);
+
+        if (readableBytes <= 0) {
+            throw new IllegalStateException(
+                "Invalid environment memory region."
+            );
+        }
+
+        Memory buffer = new Memory(readableBytes);
+        IntByReference bytesRead = new IntByReference();
+
+        boolean ok = Kernel32.INSTANCE.ReadProcessMemory(
+            process,
+            environmentAddress,
+            buffer,
+            (int) readableBytes,
+            bytesRead
+        );
 
         if (!ok || bytesRead.getValue() <= 0) {
             throw new IllegalStateException(
                 "ReadProcessMemory failed: "
                 + Kernel32.INSTANCE.GetLastError()
+                + " | bytesRead=" + bytesRead.getValue()
             );
         }
 
-        byte[] data =
-            buffer.getByteArray(
-                0,
-                bytesRead.getValue()
-            );
+        String envBlock = new String(
+            buffer.getByteArray(0, bytesRead.getValue()),
+            StandardCharsets.UTF_16LE
+        );
 
-        String envBlock =
-            new String(
-                data,
-                StandardCharsets.UTF_16LE
-            );
-
-        int end =
-            envBlock.indexOf("\u0000\u0000");
+        int end = envBlock.indexOf("\u0000\u0000");
 
         if (end != -1) {
-            envBlock =
-                envBlock.substring(0, end);
+            envBlock = envBlock.substring(0, end);
         }
 
-        String[] vars =
-            envBlock.split("\u0000");
+        Map<String, String> environment = new HashMap<>();
 
-        Map<String, String> environment =
-            new HashMap<>();
-
-        for (String var : vars) {
-            if (var.isEmpty()) {
-                continue;
-            }
-
-            int index =
-                var.indexOf('=');
+        for (String var : envBlock.split("\u0000")) {
+            int index = var.indexOf('=');
 
             if (index > 0) {
                 environment.put(
@@ -201,12 +213,10 @@ public class getInstancePath {
     private static Path checkInstMcDir(
         Map<String, String> environment
     ) {
-        String value =
-            environment.get("INST_MC_DIR");
+        String value = environment.get("INST_MC_DIR");
 
         if (value != null && !value.isEmpty()) {
-            Path path =
-                Paths.get(value);
+            Path path = Paths.get(value);
 
             if (Files.isDirectory(path)) {
                 return path;
@@ -216,19 +226,12 @@ public class getInstancePath {
         return null;
     }
 
-    private static Path checkGameDir(
-        String commandLine
-    ) {
-        String[] args =
-            commandLine.split("\\s+");
+    private static Path checkGameDir(String commandLine) {
+        String[] args = commandLine.split("\\s+");
 
-        for (int i = 0; i < args.length; i++) {
-            if (
-                args[i].equals("--gameDir") &&
-                i + 1 < args.length
-            ) {
-                Path path =
-                    Paths.get(args[i + 1]);
+        for (int i = 0; i < args.length - 1; i++) {
+            if (args[i].equals("--gameDir")) {
+                Path path = Paths.get(args[i + 1]);
 
                 if (Files.isDirectory(path)) {
                     return path;
@@ -242,56 +245,36 @@ public class getInstancePath {
     private static Path checkJavaLibraryPath(
         String commandLine
     ) {
-        String[] args =
-            commandLine.split("\\s+");
+        String prefix = "-Djava.library.path=";
 
-        for (String arg : args) {
-            String prefix =
-                "-Djava.library.path=";
+        for (String arg : commandLine.split("\\s+")) {
+            if (!arg.startsWith(prefix)) {
+                continue;
+            }
 
-            if (arg.startsWith(prefix)) {
-                String value =
-                    arg.substring(prefix.length());
+            String[] libraryPaths =
+                arg.substring(prefix.length()).split(
+                    java.util.regex.Pattern.quote(
+                        java.io.File.pathSeparator
+                    )
+                );
 
-                String[] libraryPaths =
-                    value.split(
-                        java.util.regex.Pattern.quote(
-                            java.io.File.pathSeparator
-                        )
-                    );
+            for (String libraryPathString : libraryPaths) {
+                Path libraryPath =
+                    Paths.get(libraryPathString);
 
-                for (
-                    String libraryPathString :
-                    libraryPaths
-                ) {
-                    Path libraryPath =
-                        Paths.get(libraryPathString);
+                Path minecraft =
+                    libraryPath.resolveSibling(".minecraft");
 
-                    Path dotMinecraftSibling =
-                        libraryPath.resolveSibling(
-                            ".minecraft"
-                        );
+                if (Files.isDirectory(minecraft)) {
+                    return minecraft;
+                }
 
-                    if (
-                        Files.isDirectory(
-                            dotMinecraftSibling
-                        )
-                    ) {
-                        return dotMinecraftSibling;
-                    }
+                minecraft =
+                    libraryPath.resolveSibling("minecraft");
 
-                    Path minecraftSibling =
-                        libraryPath.resolveSibling(
-                            "minecraft"
-                        );
-
-                    if (
-                        Files.isDirectory(
-                            minecraftSibling
-                        )
-                    ) {
-                        return minecraftSibling;
-                    }
+                if (Files.isDirectory(minecraft)) {
+                    return minecraft;
                 }
             }
         }
@@ -299,28 +282,24 @@ public class getInstancePath {
         return null;
     }
 
-    private static String getCommandLine(
-        HANDLE process
-    ) {
+    private static String getCommandLine(HANDLE process) {
         PROCESS_BASIC_INFORMATION pbi =
             new PROCESS_BASIC_INFORMATION();
 
         IntByReference retLen =
             new IntByReference();
 
-        int status =
-            Ntdll.INSTANCE.NtQueryInformationProcess(
-                process,
-                0,
-                pbi,
-                pbi.size(),
-                retLen
-            );
+        int status = Ntdll.INSTANCE.NtQueryInformationProcess(
+            process,
+            0,
+            pbi,
+            pbi.size(),
+            retLen
+        );
 
         if (status != 0) {
             throw new IllegalStateException(
-                "NtQueryInformationProcess failed: "
-                + status
+                "NtQueryInformationProcess failed: " + status
             );
         }
 
@@ -328,30 +307,24 @@ public class getInstancePath {
             readPointer(
                 process,
                 pbi.PebBaseAddress.share(
-                    Native.POINTER_SIZE == 8
-                        ? 0x20
-                        : 0x10
-                )
+                    Native.POINTER_SIZE == 8 ? 0x20 : 0x10
+                ),
+                "getCommandLine ProcessParameters"
             );
 
-        Memory unicodeString =
-            new Memory(16);
-
+        Memory unicodeString = new Memory(16);
         IntByReference bytesRead =
             new IntByReference();
 
-        boolean ok =
-            Kernel32.INSTANCE.ReadProcessMemory(
-                process,
-                processParameters.share(
-                    Native.POINTER_SIZE == 8
-                        ? 0x70
-                        : 0x40
-                ),
-                unicodeString,
-                16,
-                bytesRead
-            );
+        boolean ok = Kernel32.INSTANCE.ReadProcessMemory(
+            process,
+            processParameters.share(
+                Native.POINTER_SIZE == 8 ? 0x70 : 0x40
+            ),
+            unicodeString,
+            16,
+            bytesRead
+        );
 
         if (!ok) {
             throw new IllegalStateException(
@@ -366,22 +339,19 @@ public class getInstancePath {
 
         Pointer buffer =
             unicodeString.getPointer(
-                Native.POINTER_SIZE == 8
-                    ? 8
-                    : 4
+                Native.POINTER_SIZE == 8 ? 8 : 4
             );
 
         Memory commandLineMemory =
             new Memory(length);
 
-        ok =
-            Kernel32.INSTANCE.ReadProcessMemory(
-                process,
-                buffer,
-                commandLineMemory,
-                length,
-                bytesRead
-            );
+        ok = Kernel32.INSTANCE.ReadProcessMemory(
+            process,
+            buffer,
+            commandLineMemory,
+            length,
+            bytesRead
+        );
 
         if (!ok) {
             throw new IllegalStateException(
@@ -390,10 +360,7 @@ public class getInstancePath {
         }
 
         return new String(
-            commandLineMemory.getByteArray(
-                0,
-                length
-            ),
+            commandLineMemory.getByteArray(0, length),
             StandardCharsets.UTF_16LE
         );
     }
@@ -431,7 +398,6 @@ public class getInstancePath {
             }
 
             return instancePath;
-
         } finally {
             Kernel32.INSTANCE.CloseHandle(process);
         }

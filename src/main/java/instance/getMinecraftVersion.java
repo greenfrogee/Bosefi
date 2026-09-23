@@ -12,6 +12,9 @@ public class getMinecraftVersion {
             String commandLine =
                 getCommandLine.getCommandLine(pid);
 
+            System.out.println("\nCOMMANDLINE:");
+            System.out.println(commandLine);
+
             Pattern pattern =
                 Pattern.compile(
                     "com/mojang/minecraft/([^/]+)/minecraft-[^/]+\\.jar"

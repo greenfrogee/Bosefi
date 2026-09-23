@@ -31,7 +31,6 @@ public static void main(String[] args) {
     String errorMessage = "";
 
     int pid = getProcessId.getMinecraftPID();
-    System.out.println(pid);
 
     if (pid == -1) {
         errorMessage +=
@@ -43,10 +42,8 @@ public static void main(String[] args) {
     Boolean boateyeSettingsExists =
         boateyeSettings.exists();
 
-    System.out.println(
-        "DO BOATEYE SETTINGS EXIST?"
-        + boateyeSettingsExists
-    );
+    System.out.println("NINJABRAINBOT REGISTRY DIRECTORY:");
+    System.out.println(boateyeSettingsExists);
 
     if (
         boateyeSettingsExists == null
@@ -91,6 +88,7 @@ public static void main(String[] args) {
     boolean standardSettings =
         getStandardSettings.exists(instancePath);
 
+    System.out.println();
     System.out.println("PID:");
     System.out.println(pid);
 
