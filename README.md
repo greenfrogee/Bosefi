@@ -3,7 +3,7 @@
 ## What is Bosefi?
 Bosefi is a one-click program for setting Boateye settings for Minecraft Speedrunning. Ninjabrainbot Settings, Minecraft Settings, and Toolscreen Settings are handled automatically, allowing for an extremely fast setup while also reducing the odds of common problems occurring.
 
-Bosefi (currently) only works on Windows. Features will most likely break for MacOS or Linux operating systems.
+Bosefi (currently) only works on Windows. Features will break for MacOS or Linux operating systems.
 
 ## Usage
 
@@ -19,3 +19,8 @@ Bosefi (currently) only works on Windows. Features will most likely break for Ma
 7. Relaunch Ninjabrainbot and press Reset.
 
 Boateye is now fully configured!
+
+## Development
+- cd to the root folder and compile with `./gradlew shadowjar`.
+- Run with `java -jar "build\libs\Bosefi.jar"`.
+   - Use the `--debug` flag for additional debug output.
