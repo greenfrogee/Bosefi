@@ -5,15 +5,16 @@ import java.util.regex.Pattern;
 
 public class getMinecraftVersion {
 
-    public static String get(int pid) {
+    public static String get(int pid, boolean debug) {
 
         try {
 
-            String commandLine =
-                getCommandLine.getCommandLine(pid);
+            String commandLine = getCommandLine.getCommandLine(pid);
 
-            System.out.println("\nCOMMANDLINE:");
-            System.out.println(commandLine);
+            if (debug) {
+                System.out.println("\nCOMMANDLINE:");
+                System.out.println(commandLine);
+            }
 
             Pattern pattern =
                 Pattern.compile(

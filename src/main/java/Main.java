@@ -28,6 +28,8 @@ public class Main {
 
 public static void main(String[] args) {
 
+    boolean debug = java.util.Arrays.asList(args).contains("--debug");
+
     String errorMessage = "";
 
     int pid = getProcessId.getMinecraftPID();
@@ -36,21 +38,9 @@ public static void main(String[] args) {
         errorMessage +=
             "ERROR: Minecraft is not currently running! Please launch it, then run Bosefi again.\n";
 
-        System.out.println("Minecraft process not found.");
-    }
-
-    Boolean boateyeSettingsExists =
-        boateyeSettings.exists();
-
-    System.out.println("NINJABRAINBOT REGISTRY DIRECTORY:");
-    System.out.println(boateyeSettingsExists);
-
-    if (
-        boateyeSettingsExists == null
-        || !boateyeSettingsExists
-    ) {
-        errorMessage +=
-            "ERROR: You have not installed Ninjabrainbot! Please run it once, then run Bosefi again.\n";
+        if (debug) {
+            System.out.println("[Debug] Minecraft process not found.");
+        }
     }
 
     boolean toolscreenConfigExists =
@@ -62,9 +52,9 @@ public static void main(String[] args) {
     }
 
     if (!errorMessage.isEmpty()) {
-        System.out.println(
-            "error message is not nothing; telling user errors"
-        );
+        if (debug) {
+            System.out.println("Error message is not nothing; telling user errors");
+        }
 
         JOptionPane.showMessageDialog(
             null,
@@ -77,7 +67,7 @@ public static void main(String[] args) {
     }
 
     String minecraftVersion =
-        getMinecraftVersion.get(pid);
+        getMinecraftVersion.get(pid, debug);
 
     Path instancePath =
         getInstancePath.getInstancePath(pid);
@@ -88,26 +78,27 @@ public static void main(String[] args) {
     boolean standardSettings =
         getStandardSettings.exists(instancePath);
 
-    System.out.println();
-    System.out.println("PID:");
-    System.out.println(pid);
+    if (debug){
+        System.out.println();
+        System.out.println("PID:");
+        System.out.println(pid);
 
-    System.out.println();
-    System.out.println("MINECRAFT VERSION:");
-    System.out.println(minecraftVersion);
+        System.out.println();
+        System.out.println("MINECRAFT VERSION:");
+        System.out.println(minecraftVersion);
 
-    System.out.println();
-    System.out.println("INSTANCE PATH:");
-    System.out.println(instancePath);
+        System.out.println();
+        System.out.println("INSTANCE PATH:");
+        System.out.println(instancePath);
 
-    System.out.println();
-    System.out.println("OPTIONS.TXT:");
-    System.out.println(optionsTxt);
+        System.out.println();
+        System.out.println("OPTIONS.TXT:");
+        System.out.println(optionsTxt);
 
-    System.out.println();
-    System.out.println("STANDARDSETTINGS.JSON:");
-    System.out.println(standardSettings);
-
+        System.out.println();
+        System.out.println("STANDARDSETTINGS.JSON:");
+        System.out.println(standardSettings);
+    }
     Double standardSettingsMouseSensitivity = null;
     Double optionsTxtMouseSensitivity = null;
 
@@ -116,14 +107,11 @@ public static void main(String[] args) {
             getStandardSettingsSensitivity.get(
                 instancePath
             );
-
-        System.out.println();
-        System.out.println(
-            "STANDARD SETTINGS MOUSE SENSITIVITY:"
-        );
-        System.out.println(
-            standardSettingsMouseSensitivity
-        );
+        if (debug) {
+            System.out.println();
+            System.out.println("STANDARD SETTINGS MOUSE SENSITIVITY:");
+            System.out.println(standardSettingsMouseSensitivity);
+        }
     }
 
     if (optionsTxt) {
@@ -131,14 +119,11 @@ public static void main(String[] args) {
             getOptionsTxtSensitivity.get(
                 instancePath
             );
-
+        if (debug) {
         System.out.println();
-        System.out.println(
-            "OPTIONS.TXT MOUSE SENSITIVITY:"
-        );
-        System.out.println(
-            optionsTxtMouseSensitivity
-        );
+        System.out.println("OPTIONS.TXT MOUSE SENSITIVITY:");
+        System.out.println(optionsTxtMouseSensitivity);
+        }
     }
 
     Double toolscreenSensitivity =
@@ -146,10 +131,11 @@ public static void main(String[] args) {
             optionsTxtMouseSensitivity,
             standardSettingsMouseSensitivity
         );
-
-    System.out.println();
-    System.out.println("TOOLSCREEN SENSITIVITY:");
-    System.out.println(toolscreenSensitivity);
+    if (debug) {
+        System.out.println();
+        System.out.println("TOOLSCREEN SENSITIVITY:");
+        System.out.println(toolscreenSensitivity);
+    }
 
     String activeProfile =
         getActiveProfile.get();
@@ -173,10 +159,11 @@ public static void main(String[] args) {
             "profiles",
             activeProfile + ".toml"
         );
-
-    System.out.println();
-    System.out.println("ACTIVE TOOLSCREEN PROFILE:");
-    System.out.println(activeProfile);
+    if (debug) {
+        System.out.println();
+        System.out.println("ACTIVE TOOLSCREEN PROFILE:");
+        System.out.println(activeProfile);
+    }
 
     int confirmation =
         JOptionPane.showConfirmDialog(
@@ -196,14 +183,14 @@ public static void main(String[] args) {
     if (standardSettingsMouseSensitivity != null) {
         changes +=
             fixStandardSettingsSensitivity.fix(
-                instancePath
+                instancePath, standardSettingsMouseSensitivity
             );
     }
 
     if (optionsTxtMouseSensitivity != null) {
         changes +=
             fixOptionsTxtSensitivity.fix(
-                instancePath
+                instancePath, optionsTxtMouseSensitivity
             );
     }
 
@@ -229,6 +216,7 @@ public static void main(String[] args) {
     if (!changes.isEmpty()) {
         changes = changes
             .replace("null", "Disabled")
+            .replace("false", "Disabled")
             .replace("true", "Enabled")
 
             .replace("mc_version", "Minecraft version")
@@ -242,8 +230,18 @@ public static void main(String[] args) {
             .replace("Ninjabrainbot sensitivity", "Ninjabrainbot Sensitivity 1.13+")
             .replace("default_boat_type", "Default boat mode")
             .replace("boat_error", "Allowable boat angle error")
-            .replace("sigma_boat", "Standard deviation for boat throws");
+            .replace("sigma_boat", "Standard deviation for boat throws")
+
+            .replace("1.0E-3", "0.001")
+            .replace("7.0E-4", "0.0007");
     }
+
+    if (debug){
+        System.out.println("");
+        System.out.println("CHANGES:");
+        System.out.println(changes);
+    }
+
 
     JLabel message =
         new JLabel(

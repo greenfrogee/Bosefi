@@ -187,29 +187,12 @@ public static String fix(
 
         String changes = "";
 
-        if (
-            Double.compare(
-                oldSensitivity,
-                newSensitivityValue
-            ) != 0
-        ) {
-            changes +=
-                name
-                + " sensitivity: "
-                + oldSensitivity
-                + " → "
-                + newSensitivityValue
-                + "\n";
+        if (Math.abs((oldSensitivity - newSensitivityValue) / (newSensitivityValue)) >= 0.0000001) {
+            changes += name + " sensitivity: " + oldSensitivity + " → " + newSensitivityValue + "\n";
         }
 
-        if (
-            !oldEyeZoomHeight.equals("16384")
-        ) {
-            changes +=
-                name
-                + " EyeZoom height: "
-                + oldEyeZoomHeight
-                + " → 16384\n";
+        if (!oldEyeZoomHeight.equals("16384")) {
+            changes += name + " EyeZoom height: " + oldEyeZoomHeight + " → 16384\n";
         }
 
         return changes;

@@ -14,10 +14,7 @@ public class getStandardSettingsSensitivity {
             return null;
         }
 
-        Path file =
-            instancePath.resolve("config")
-                .resolve("mcsr")
-                .resolve("standardsettings.json");
+        Path file = instancePath.resolve("config").resolve("mcsr").resolve("standardsettings.json");
 
         try {
             String content =

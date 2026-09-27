@@ -6,7 +6,7 @@ import java.nio.file.Path;
 
 public class fixOptionsTxtSensitivity {
 
-    public static String fix(Path instancePath) {
+    public static String fix(Path instancePath, Double optionsTxtMouseSensitivity) {
 
         Double sensitivity =
             getOptionsTxtSensitivity.get(instancePath);
@@ -47,11 +47,16 @@ public class fixOptionsTxtSensitivity {
                 updated.getBytes(StandardCharsets.UTF_8)
             );
 
-            return "options.txt sensitivity: "
-                + sensitivity
-                + " → 0.02291165\n";
+            if (Math.abs((optionsTxtMouseSensitivity - 0.02291165) / (0.02291165)) >= 0.0000001) {
+                return "options.txt sensitivity: " + sensitivity + " → 0.02291165\n";
+            } 
 
-        } catch (Exception e) {
+            else {
+                return "";
+            }
+        }   
+
+        catch (Exception e) {
             return "";
         }
     }

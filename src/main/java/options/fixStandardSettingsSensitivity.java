@@ -6,7 +6,7 @@ import java.nio.file.Path;
 
 public class fixStandardSettingsSensitivity {
 
-    public static String fix(Path instancePath) {
+    public static String fix(Path instancePath, Double standardSettingsMouseSensitivity) {
 
         Double sensitivity =
             getStandardSettingsSensitivity.get(instancePath);
@@ -49,13 +49,16 @@ public class fixStandardSettingsSensitivity {
                 file,
                 updated.getBytes(StandardCharsets.UTF_8)
             );
-
-            return "standardsettings.json sensitivity: "
-                + sensitivity
-                + " → 0.02291165\n";
-
-        } catch (Exception e) {
+        
+        if (Math.abs((standardSettingsMouseSensitivity - 0.02291165) / (0.02291165)) >= 0.0000001) {
+            return "standardsettings.json sensitivity: " + sensitivity + " → 0.02291165\n";
+                } else {
             return "";
+                } 
+        }
+
+        catch (Exception e) {
+            return "";
+            }
         }
     }
-}
