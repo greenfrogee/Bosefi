@@ -11,6 +11,8 @@ dependencies {
     implementation 'net.java.dev.jna:jna:5.19.1'
     implementation 'net.java.dev.jna:jna-platform:5.19.1'
     implementation 'org.tomlj:tomlj:1.1.1'
+    implementation 'com.intellij:forms_rt:7.0.3'
+    implementation 'com.formdev:flatlaf:3.6.2'
 }
 
 java {

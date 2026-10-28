@@ -4,3 +4,4 @@ build/
 gradle.properties
 .gradle
 META-INF/
+.idea

@@ -69,9 +69,7 @@ public class getToolscreenSensitivity {
                 Math.pow((0.6 * 0.02291165) + 0.2, 3) * 1.2;
 
             double toolscreenSensitivity =
-                Math.round(
-                    (numerator / denominator) * 100.0
-                ) / 100.0;
+                Math.round((numerator / denominator) * 100.0) / 100.0;
 
             return toolscreenSensitivity * globalSensitivity;
 

@@ -1,4 +1,4 @@
-package gui;
+package core;
 
 import instance.getProcessId;
 import instance.getInstancePath;
@@ -18,13 +18,10 @@ import toolscreen.getActiveProfile;
 import registry.boateyeSettings;
 
 import javax.swing.JOptionPane;
-import javax.swing.JLabel;
 import javax.swing.JFrame;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.BorderFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,19 +30,12 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
 public class runBosefi {
-
-    public static void main(String[] args) {
-        boolean debug = java.util.Arrays.asList(args).contains("--debug");
-
-        SwingUtilities.invokeLater(() -> createWindow(debug));
-    }
-
     private static void createWindow(boolean debug) {
         JFrame frame = new JFrame("Bosefi");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         ImageIcon icon = new ImageIcon(
-            runBosefi.class.getResource("/bosefi.png")
+                runBosefi.class.getResource("/bosefi.png")
         );
         frame.setIconImage(icon.getImage());
 
@@ -59,64 +49,10 @@ public class runBosefi {
         frame.setMinimumSize(frame.getSize());
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-
-        applyButton.addActionListener(e -> {
-            applyButton.setEnabled(false);
-
-            try {
-                applyBoateyeSettings(debug, frame);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(
-                    frame,
-                    "An unexpected error occurred:\n" + ex.getMessage(),
-                    "Bosefi",
-                    JOptionPane.ERROR_MESSAGE
-                );
-            } finally {
-                if (frame.isDisplayable()) {
-                    applyButton.setEnabled(true);
-                }
-            }
-        });
     }
 
-    public static void applyBoateyeSettings(boolean debug, JFrame frame) {
-        String errorMessage = "";
-
-        int pid = getProcessId.getMinecraftPID();
-
-        if (pid == -1) {
-            errorMessage +=
-                "ERROR: Minecraft is not currently running! Please launch it, then run Bosefi again.\n";
-
-            if (debug) {
-                System.out.println("[Debug] Minecraft process not found.");
-            }
-        }
-
-        boolean toolscreenConfigExists =
-            getToolscreenSensitivity.exists();
-
-        if (!toolscreenConfigExists) {
-            errorMessage +=
-                "ERROR: You have not installed Toolscreen! Please install it, then run Bosefi again.\n";
-        }
-
-        if (!errorMessage.isEmpty()) {
-            if (debug) {
-                System.out.println("Error message is not nothing; telling user errors");
-            }
-
-            JOptionPane.showMessageDialog(
-                frame,
-                errorMessage,
-                "Bosefi",
-                JOptionPane.ERROR_MESSAGE
-            );
-
-            return;
-        }
+    public static void applyBoateyeSettings(boolean debug, JFrame frame, boolean doWeKnowHowToDealWithEyeWiggle) {
+        int pid = getProcessId.getMinecraftPID(); // We get the pid twice but im too lazy to actually clean this up
 
         String minecraftVersion =
             getMinecraftVersion.get(pid, debug);
@@ -246,11 +182,7 @@ public class runBosefi {
         }
 
         changes +=
-            boateyeSettings.updateSettings(minecraftVersion);
-
-        if (changes.isEmpty()) {
-            changes = "No changes made.";
-        }
+            boateyeSettings.updateSettings(minecraftVersion, doWeKnowHowToDealWithEyeWiggle);
 
         if (!changes.isEmpty()) {
             changes = changes
@@ -277,13 +209,28 @@ public class runBosefi {
 
         if (debug) {
             System.out.println();
-            System.out.println("CHANGES:");
+            System.out.print("CHANGES:");
             System.out.println(changes);
         }
 
+        if (changes.equals("WARNING: Couldn't determine Minecraft version. Check the Minecraft Version setting in Ninjabrain Bot.")) {
+            changes = "";
+        } // ts is brick asf but it works and rewriting this to be appended later is painful
+
         if (!changes.isEmpty()) {
-            changes += "\n\nMake sure to relaunch Minecraft! Also relaunch Ninjabrain Bot and click Reset!";
             changes += "\n\nIf you're still missing after running Bosefi, use /stillmissing in Discord for more solutions.";
+        }
+
+        if (changes.isEmpty()) {
+            changes = "No changes made.";
+        }
+
+        if (changes.contains("Default boat mode")) {
+            changes += "\n\n⚠ Make sure to relaunch Ninjabrain Bot and click Reset! ⚠";
+        }
+
+        if (changes.contains("standardsettings.json") || changes.contains("options.txt") || changes.contains("Toolscreen profile")) {
+            changes += "\n\n⚠ Make sure to relaunch Minecraft! ⚠";
         }
 
         JOptionPane.showMessageDialog(

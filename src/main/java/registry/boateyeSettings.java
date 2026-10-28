@@ -7,7 +7,7 @@ public class boateyeSettings {
     private static final Preferences preferences = Preferences.userRoot().node("ninjabrainbot");
 
     public static String setValue( String name, String value, String defaultValue) {
-        
+
         String current = preferences.get(name, null);
 
         if (value.equals(current)) {
@@ -25,32 +25,38 @@ public class boateyeSettings {
         return "Ninjabrainbot " + name + ": " + displayCurrent + " → " + value + "\n";
     }
 
-    public static String updateSettings(
-        String minecraftVersion
-    ) {
+    public static String updateSettings(String minecraftVersion, Boolean doWeKnowHowToDealWithEyeWiggle) {
 
         String changes = "";
+        String determinedMinecraftVersion = "";
 
         int mcVersion = 0;
 
-        if (minecraftVersion != null) {
-            String[] parts =
-                minecraftVersion.split("\\.");
+        try {
+            if (minecraftVersion != null) {
+                String[] parts = minecraftVersion.split("\\.");
 
-            if (parts.length >= 2) {
-                int major =
-                    Integer.parseInt(parts[0]);
+                if (parts.length >= 2) {
+                    int major = Integer.parseInt(parts[0]);
+                    int minor = Integer.parseInt(parts[1]);
 
-                int minor =
-                    Integer.parseInt(parts[1]);
-
-                if (
-                    major > 1
-                    || (major == 1 && minor >= 19)
-                ) {
-                    mcVersion = 1;
+                    if (major > 1 || (major == 1 && minor >= 19)) {
+                        mcVersion = 1;
+                    }
                 }
             }
+        } catch (NumberFormatException e) {
+            mcVersion = 0;
+            determinedMinecraftVersion = "WARNING: Couldn't determine Minecraft version. Check the Minecraft Version setting in Ninjabrain Bot.";
+
+        }
+
+        String sigma_boat;
+
+        if (doWeKnowHowToDealWithEyeWiggle){
+            sigma_boat = "7.0E-4";
+        } else {
+            sigma_boat = "1.0E-3";
         }
 
         changes += setValue(
@@ -103,7 +109,7 @@ public class boateyeSettings {
 
         changes += setValue(
             "sigma_boat",
-            "7.0E-4",
+            sigma_boat,
             "1.0E-3"
         );
 
@@ -125,6 +131,6 @@ public class boateyeSettings {
             null
         );
 
-        return changes;
+        return changes + determinedMinecraftVersion;
     }
 }

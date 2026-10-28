@@ -10,10 +10,11 @@ import java.awt.*;
 import java.util.Locale;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import core.runBosefi;
 
-public class main {
-    private JPanel rootPanel;
-    private JButton applyBoateyeSettingsButton;
+public class bosefiMenu {
+    public JPanel rootPanel;
+    public JButton applyBoateyeSettingsButton;
     private JPanel buttonPanel;
 
     {
@@ -81,11 +82,15 @@ public class main {
         SwingUtilities.invokeLater(() -> {
             FlatDarkLaf.setup();
 
-            main app = new main();
+            bosefiMenu app = new bosefiMenu();
 
-            JFrame frame = new JFrame("Bosefi v1.0.8");
+            JFrame frame = new JFrame("Bosefi v1.1.0");
+
+            app.applyBoateyeSettingsButton.addActionListener(e ->
+                    core.askEyeWiggle.ask(frame, false));
+
             frame.setIconImage(
-                    new ImageIcon(main.class.getResource("/bosefi.png")).getImage());
+                    new ImageIcon(bosefiMenu.class.getResource("/bosefi.png")).getImage());
             frame.setContentPane(app.rootPanel);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(300, 200);
