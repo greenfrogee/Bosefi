@@ -29,10 +29,6 @@ public class askEyeWiggle {
         }
 
         if (!errorMessage.isEmpty()) {
-            if (debug) {
-                System.out.println("Error message is not nothing; telling user errors");
-            }
-
             JOptionPane.showMessageDialog(
                     frame,
                     errorMessage,

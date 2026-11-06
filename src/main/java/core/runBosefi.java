@@ -19,38 +19,11 @@ import registry.boateyeSettings;
 
 import javax.swing.JOptionPane;
 import javax.swing.JFrame;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JPanel;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-
 public class runBosefi {
-    private static void createWindow(boolean debug) {
-        JFrame frame = new JFrame("Bosefi");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        ImageIcon icon = new ImageIcon(
-                runBosefi.class.getResource("/bosefi.png")
-        );
-        frame.setIconImage(icon.getImage());
-
-        JButton applyButton = new JButton("Apply Boateye Settings");
-
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        panel.add(applyButton);
-
-        frame.add(panel, BorderLayout.CENTER);
-        frame.pack();
-        frame.setMinimumSize(frame.getSize());
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
-
     public static void applyBoateyeSettings(boolean debug, JFrame frame, boolean doWeKnowHowToDealWithEyeWiggle) {
         int pid = getProcessId.getMinecraftPID(); // We get the pid twice but im too lazy to actually clean this up
 
@@ -218,19 +191,18 @@ public class runBosefi {
         } // ts is brick asf but it works and rewriting this to be appended later is painful
 
         if (!changes.isEmpty()) {
-            changes += "\n\nIf you're still missing after running Bosefi, use /stillmissing in Discord for more solutions.";
+            changes += "\nIf you're still missing after applying settings, click \"Still Missing?\" for more solutions.";
         }
-
         if (changes.isEmpty()) {
             changes = "No changes made.";
         }
 
         if (changes.contains("Default boat mode")) {
-            changes += "\n\n⚠ Make sure to relaunch Ninjabrain Bot and click Reset! ⚠";
+            changes += "\n\n⚠ Make sure to relaunch Ninjabrain Bot and click \"Reset\"! DO NOT IGNORE THIS! ⚠";
         }
 
         if (changes.contains("standardsettings.json") || changes.contains("options.txt") || changes.contains("Toolscreen profile")) {
-            changes += "\n\n⚠ Make sure to relaunch Minecraft! ⚠";
+            changes += "\n\n⚠ Make sure to relaunch Minecraft! DO NOT IGNORE THIS! ⚠";
         }
 
         JOptionPane.showMessageDialog(
